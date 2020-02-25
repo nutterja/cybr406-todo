@@ -1,6 +1,8 @@
 package com.cybr406.todo;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -17,22 +19,28 @@ public class TodoRestController {
     @Autowired
     InMemoryTodoRepository something;
 
+    @Autowired
+    TodoJpaRepository todoRepositoryJPA;
+
+    @Autowired
+    TodoRepository todoRepository;
+
+    @Autowired
+    TaskJpaRepository taskJpaRepository;
+
     @NotBlank(message = "Name cannot be null")
     String author;
     String details;
 
 
+
     @PostMapping("/todos")
     public ResponseEntity<Todo> createTodo(@Valid @RequestBody Todo todo) {
-        something.create(todo);
 
-        if (todo.getAuthor().isEmpty() || todo.getDetails().isEmpty()){
-            return new ResponseEntity<>(todo, HttpStatus.BAD_REQUEST);
-        }
-        return new ResponseEntity<>(todo, HttpStatus.CREATED);
+        Todo created = todoRepositoryJPA.save(todo);
+        return new ResponseEntity<>(created, HttpStatus.CREATED);
+
     }
-
-
 
 
 /** findTodo*/
@@ -55,14 +63,17 @@ public class TodoRestController {
 
 
     @GetMapping("/todos")
-    public ResponseEntity<List<Todo>> findAll(@RequestParam(defaultValue = "0") int page,
-                                        @RequestParam(defaultValue = "10") int size) {
+    public Page<Todo> findAll(Pageable page) {
 
-        List<Todo> list = something.findAll(page, size);
-
-        return new ResponseEntity<>(list, HttpStatus.OK);
+        return todoRepositoryJPA.findAll(page);
     }
 
+
+//    @PostMapping("/authors")
+//    public ResponseEntity<Author> createAuthor(@RequestBody Author author) {
+//        Author created = authorRepository.save(author);
+//        return new ResponseEntity<>(created, HttpStatus.CREATED);
+//    }
 
     @PostMapping("/todos/{id}/tasks")
     public ResponseEntity<Todo> addTask(@PathVariable long id,
@@ -86,8 +97,9 @@ public class TodoRestController {
     }
 
     @DeleteMapping("/tasks/{id}")
-    public ResponseEntity deleteTask(@PathVariable long id) {
+    public ResponseEntity deleteTask(@PathVariable Long id) {
         try {
+            //Optional<Task> task = taskJpaRepository.findById(id);
             something.deleteTask(id);
             return new ResponseEntity(HttpStatus.NO_CONTENT);
         }
