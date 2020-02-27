@@ -44,10 +44,10 @@ public class TodoRestController {
 
 
 /** findTodo*/
-    @GetMapping("/todos/{todo}")
-    public ResponseEntity<Todo> findTodo(@PathVariable long todo) {
+    @GetMapping("/todos/{id}")
+    public ResponseEntity<Todo> findTodo(@PathVariable Long id) {
 
-       Optional<Todo> list = something.find(todo);
+       Optional<Todo> list = todoRepositoryJPA.findById(id);
 
 
        if (list.isPresent()) {
@@ -78,34 +78,55 @@ public class TodoRestController {
     @PostMapping("/todos/{id}/tasks")
     public ResponseEntity<Todo> addTask(@PathVariable long id,
                                         @RequestBody Task task) {
-
+//add the task to todo and vice versa
         Todo todo = something.addTask(id, task);
 
         return new ResponseEntity<>(todo, HttpStatus.CREATED);
     }
 
     @DeleteMapping("/todos/{id}")
-    public ResponseEntity deleteTodo(@PathVariable long id) {
-        try {
-            something.delete(id);
+    public ResponseEntity deleteTodo(@PathVariable Long id) {
+
+
+        if(todoRepositoryJPA.existsById(id)){
+            todoRepositoryJPA.deleteById(id);
             return new ResponseEntity(HttpStatus.NO_CONTENT);
         }
-        catch (NoSuchElementException err) {
+        else {
             return new ResponseEntity(HttpStatus.NOT_FOUND);
         }
+
+
+//        try {
+//            //todoRepositoryJPA.deleteById(id); return 404 remove try catch - check if exists
+//            something.delete(id);
+//            return new ResponseEntity(HttpStatus.NO_CONTENT);
+//        }
+//        catch (NoSuchElementException err) {
+//            return new ResponseEntity(HttpStatus.NOT_FOUND);
+//        }
 
     }
 
     @DeleteMapping("/tasks/{id}")
     public ResponseEntity deleteTask(@PathVariable Long id) {
-        try {
-            //Optional<Task> task = taskJpaRepository.findById(id);
-            something.deleteTask(id);
+
+        if(taskJpaRepository.existsById(id)){
+            taskJpaRepository.deleteById(id);
             return new ResponseEntity(HttpStatus.NO_CONTENT);
         }
-        catch (NoSuchElementException err) {
+        else {
             return new ResponseEntity(HttpStatus.NOT_FOUND);
         }
+
+//        try {
+//            //Optional<Task> task = taskJpaRepository.findById(id);
+//            something.deleteTask(id);
+//            return new ResponseEntity(HttpStatus.NO_CONTENT);
+//        }
+//        catch (NoSuchElementException err) {
+//            return new ResponseEntity(HttpStatus.NOT_FOUND);
+//        }
     }
 
 
