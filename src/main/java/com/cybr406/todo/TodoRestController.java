@@ -78,10 +78,18 @@ public class TodoRestController {
     @PostMapping("/todos/{id}/tasks")
     public ResponseEntity<Todo> addTask(@PathVariable long id,
                                         @RequestBody Task task) {
-//add the task to todo and vice versa
-        Todo todo = something.addTask(id, task);
 
-        return new ResponseEntity<>(todo, HttpStatus.CREATED);
+        Optional<Todo> addingTask = todoRepositoryJPA.findById(id);
+
+        if (addingTask.isPresent()) {
+            Todo todo = addingTask.get();
+            todo.getTasks().add(task);
+            task.setTodo(todo);
+            taskJpaRepository.save(task);
+            return new ResponseEntity<>(todo, HttpStatus.CREATED);}
+        else {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
     }
 
     @DeleteMapping("/todos/{id}")
